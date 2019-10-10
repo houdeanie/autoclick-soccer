@@ -8,7 +8,9 @@ import time
 import mss
 import mss.tools
 from PIL import ImageGrab
+#import win32api
 
+# optimised version, ideally on pc with good cpu
 
 pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0
@@ -16,8 +18,6 @@ pyautogui.PAUSE = 0
 scname = 'screenshot.png'
 ballname = 'ball.png'
 folder1 = 'sc/'
-folder2 = 'sc1/'
-folder3 = 'sc2/'
 
 ##### Screenshot methods #######
 # doesnt work
@@ -37,21 +37,26 @@ def msssc(left, top, width, height, filename):
         # Save to the picture file
         mss.tools.to_png(sct_img.rgb, sct_img.size, output=filename)
 
-def PILgrab(left, top, width, height, filename):
+'''def PILgrab(left, top, width, height, filename):
     monitor = {'top': top, 'left': left, 'width': width, 'height': height}
-    screen =  np.array(ImageGrab.grab(bbox=(0,40, 800, 850)))
+    screen =  np.array(ImageGrab.grab(bbox=(0,40, 800, 850)))'''
+
+def GTKsc():
+    # take screen shot
+    return 0
 
 # just a list for future refrence
 # methods for opencv
 methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
             'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
 
-METHOD = 'cv2.TM_CCOEFF_NORMED'
+METHOD = 'cv2.TM_CCOEFF'
 
 #def (self, parameter_list):
 #    pass
 # detect where ball is relative to screen
 # return centre x and y of ball
+'''
 def detect(target, source):
     # Load image - work in greyscale as 1/3 as many pixels
     img = cv2.imread(source,cv2.IMREAD_GRAYSCALE)
@@ -86,7 +91,7 @@ def detect(target, source):
     centerY = (top_left[1] + bottom_right[1]) / 2
 
     return centerX, centerY
-
+'''
 #  ==========================
 '''
 # make image black and look for color
@@ -116,25 +121,29 @@ def blackball(target, source, i):
 
     return c0, c1'''
 
+def read_target(target):
+    template = cv2.imread(target,cv2.IMREAD_GRAYSCALE)
+    return template
+
 # take sc, process and get coord
-def fullproc(target, left, top, width, height):
-    start = time.time()
+def fullproc(template, left, top, width, height):
+    #start = time.time()
     with mss.mss() as sct:
         # The screen part to capture
         monitor = {'top': top, 'left': left, 'width': width, 'height': height}
         # Grab the data
         sct_img = sct.grab(monitor)
 
-    #img = 
     #img = cv2.imread(source,cv2.IMREAD_GRAYSCALE)
     #img2 = img.copy()
-    template = cv2.imread(target,cv2.IMREAD_GRAYSCALE)
+    #template = cv2.imread(target,cv2.IMREAD_GRAYSCALE)
     # remove big number center
     #img[80:155,122:170] = 255 #- img[117:191,122:162]
 
     # Negate image so whites become black
     #img=255-img
     img2 = cv2.cvtColor(np.array(sct_img), cv2.COLOR_BGR2GRAY)
+    #img2=255-img2
 
     # get w and h of template
     w, h = template.shape[::-1]
@@ -160,8 +169,8 @@ def fullproc(target, left, top, width, height):
     
     #centerX = 0
     #centerY = 0
-    end = time.time()
-    print(end - start)
+    #end = time.time()
+    #print(end - start)
     return centerX, centerY
     
 
@@ -203,17 +212,17 @@ buffer = 20
 suffix = '.png'
 
 fname = 'screenshot'
-delay = 0.1 # in seconds
+delay = 0.05 # in seconds
 
 def main():
     desiredscore = 10000
     currentscore = 0
     lis = Listener(on_press=on_press)
     lis.start()
-    eloc = {'left': 650, 'top': 95, 'width': 932 - 650, 'height': 534 - 95}
+    eloc = {'left': 680, 'top': 286, 'width': 987 - 680, 'height': 529 - 286} #680,286, 998, 529
     display_controls()
     i = 0
-    
+    target = read_target(ballname)
     while True:
         #if not pause:
             #takesc()
@@ -221,23 +230,24 @@ def main():
             #msssc(eloc['left'], eloc['top'], eloc['width'], eloc['height'], folder1 + fname + str(i) + suffix)
 
             #centreX, centreY = blackball(ballname, folder + fname + str(i) + suffix, i)
-            # centreX, centreY = detect(ballname, folder1+fname + str(i) + suffix)
-        centreX, centreY = fullproc(ballname, eloc['left'], eloc['top'], eloc['width'], eloc['height'])
+            #centreX, centreY = detect(ballname, folder1+fname + str(i) + suffix)
+        centreX, centreY = fullproc(target, eloc['left'], eloc['top'], eloc['width'], eloc['height'])
         centreX = centreX + eloc['left']
-        centreY = centreY + eloc['top']
+        centreY = centreY + eloc['top'] + buffer
         #print(centreX, centreY)
-        if centreY > (eloc['height'])/2 + eloc['top']:
-            pyautogui.click(x=centreX, y=centreY+buffer)
+        if centreY + buffer > eloc['height'] + eloc['top']:
+            centreY = eloc['height'] + eloc['top'] - 1
+        if centreY > (eloc['height'])/2:
+            pyautogui.click(x=centreX, y=centreY)
             #pyautogui.click(x=centreX+20, y=centreY+buffer)
             #pyautogui.click(x=centreX-20, y=centreY+buffer)
             #currentscore += 1
-            pyautogui.PAUSE = delay
-                #i +=1 
-                #print(currentscore)
+            #pyautogui.PAUSE = delay
+            #i +=1 
+            #print(currentscore)
         #i = 0
             #pyautogui.click(x=672, y=370)
 
-        #
             #width, height = pyautogui.size()
             #for i in range(int(1366/2 -200), int(1366/2 +200)):
             #pyautogui.click(x=1366/2, y=730)
