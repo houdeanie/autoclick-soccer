@@ -20,7 +20,7 @@ folder2 = 'sc1/'
 folder3 = 'sc2/'
 
 ##### Screenshot methods #######
-
+# doesnt work
 def pyautoguisc(left, top, width, height, filename):
     monitor = {'top': top, 'left': left, 'width': width, 'height': height}
     start = time.time()
@@ -46,7 +46,7 @@ def PILgrab(left, top, width, height, filename):
 methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
             'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
 
-METHOD = 'cv2.TM_CCOEFF'
+METHOD = 'cv2.TM_CCOEFF_NORMED'
 
 #def (self, parameter_list):
 #    pass
@@ -88,7 +88,8 @@ def detect(target, source):
     return centerX, centerY
 
 #  ==========================
-
+'''
+# make image black and look for color
 def blackball(target, source, i):
     img = cv2.imread(source,cv2.IMREAD_GRAYSCALE)
     #template = cv2.imread(target,cv2.IMREAD_GRAYSCALE)
@@ -113,7 +114,56 @@ def blackball(target, source, i):
     print('Ball centre: {},{}'.format(c0,c1))
     cv2.imwrite('gs/greyscale' + str(i) + '.png',img)
 
-    return c0, c1
+    return c0, c1'''
+
+# take sc, process and get coord
+def fullproc(target, left, top, width, height):
+    start = time.time()
+    with mss.mss() as sct:
+        # The screen part to capture
+        monitor = {'top': top, 'left': left, 'width': width, 'height': height}
+        # Grab the data
+        sct_img = sct.grab(monitor)
+
+    #img = 
+    #img = cv2.imread(source,cv2.IMREAD_GRAYSCALE)
+    #img2 = img.copy()
+    template = cv2.imread(target,cv2.IMREAD_GRAYSCALE)
+    # remove big number center
+    #img[80:155,122:170] = 255 #- img[117:191,122:162]
+
+    # Negate image so whites become black
+    #img=255-img
+    img2 = cv2.cvtColor(np.array(sct_img), cv2.COLOR_BGR2GRAY)
+
+    # get w and h of template
+    w, h = template.shape[::-1]
+
+    #img = img2.copy()
+    method = eval(METHOD)
+
+    # Apply template Matching
+    res = cv2.matchTemplate(img2,template,method)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    #if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+    #    top_left = min_loc
+    #else:
+    #    top_left = max_loc
+    top_left = max_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+
+    # find center of rec
+    centerX = (top_left[0] + bottom_right[0]) / 2
+    centerY = (top_left[1] + bottom_right[1]) / 2
+    
+    #centerX = 0
+    #centerY = 0
+    end = time.time()
+    print(end - start)
+    return centerX, centerY
+    
 
 #  autoclick buttons
 resume_key = Key.f1
@@ -156,7 +206,7 @@ fname = 'screenshot'
 delay = 0.1 # in seconds
 
 def main():
-    desiredscore = 1000
+    desiredscore = 10000
     currentscore = 0
     lis = Listener(on_press=on_press)
     lis.start()
@@ -164,24 +214,28 @@ def main():
     display_controls()
     i = 0
     
-    while currentscore < desiredscore:
-        if not pause:
+    while True:
+        #if not pause:
             #takesc()
-            print("=========")
-            msssc(eloc['left'], eloc['top'], eloc['width'], eloc['height'], folder1 + fname + str(i) + suffix)
+            #print("=========")
+            #msssc(eloc['left'], eloc['top'], eloc['width'], eloc['height'], folder1 + fname + str(i) + suffix)
 
             #centreX, centreY = blackball(ballname, folder + fname + str(i) + suffix, i)
-            centreX, centreY = detect(ballname, folder1+fname + str(i) + suffix)
-            centreX = centreX + eloc['left']
-            centreY = centreY + eloc['top']
-            print(centreX, centreY)
-            if centreY > (eloc['height'])/2 + eloc['top']:
-                pyautogui.click(x=centreX, y=centreY+buffer)
-                currentscore += 1
-                pyautogui.PAUSE = delay
-                i +=1 
+            # centreX, centreY = detect(ballname, folder1+fname + str(i) + suffix)
+        centreX, centreY = fullproc(ballname, eloc['left'], eloc['top'], eloc['width'], eloc['height'])
+        centreX = centreX + eloc['left']
+        centreY = centreY + eloc['top']
+        #print(centreX, centreY)
+        if centreY > (eloc['height'])/2 + eloc['top']:
+            pyautogui.click(x=centreX, y=centreY+buffer)
+            #pyautogui.click(x=centreX+20, y=centreY+buffer)
+            #pyautogui.click(x=centreX-20, y=centreY+buffer)
+            #currentscore += 1
+            pyautogui.PAUSE = delay
+                #i +=1 
                 #print(currentscore)
         #i = 0
+            #pyautogui.click(x=672, y=370)
 
         #
             #width, height = pyautogui.size()
