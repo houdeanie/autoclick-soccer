@@ -16,11 +16,12 @@ pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0
 # first take a screenshot of the image
 scname = 'screenshot.png'
-ballname = 'ball.png'
+ballname = 'ball2.png'
 folder1 = 'sc/'
 
 ##### Screenshot methods #######
 # doesnt work
+    
 def pyautoguisc(left, top, width, height, filename):
     monitor = {'top': top, 'left': left, 'width': width, 'height': height}
     start = time.time()
@@ -42,7 +43,7 @@ def msssc(left, top, width, height, filename):
     screen =  np.array(ImageGrab.grab(bbox=(0,40, 800, 850)))'''
 
 def GTKsc():
-    # take screen shot
+    gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, img_width,img_height)
     return 0
 
 # just a list for future refrence
@@ -127,13 +128,13 @@ def read_target(target):
 
 # take sc, process and get coord
 def fullproc(template, left, top, width, height):
-    #start = time.time()
+    
     with mss.mss() as sct:
         # The screen part to capture
-        monitor = {'top': top, 'left': left, 'width': width, 'height': height}
+        # monitor = {'top': top, 'left': left, 'width': width, 'height': height}
         # Grab the data
-        sct_img = sct.grab(monitor)
-
+        sct_img = sct.grab({'top': top, 'left': left, 'width': width, 'height': height})
+    
     #img = cv2.imread(source,cv2.IMREAD_GRAYSCALE)
     #img2 = img.copy()
     #template = cv2.imread(target,cv2.IMREAD_GRAYSCALE)
@@ -142,6 +143,7 @@ def fullproc(template, left, top, width, height):
 
     # Negate image so whites become black
     #img=255-img
+    
     img2 = cv2.cvtColor(np.array(sct_img), cv2.COLOR_BGR2GRAY)
     #img2=255-img2
 
@@ -169,8 +171,7 @@ def fullproc(template, left, top, width, height):
     
     #centerX = 0
     #centerY = 0
-    #end = time.time()
-    #print(end - start)
+    
     return centerX, centerY
     
 
@@ -197,7 +198,7 @@ def on_press(key):
         quit()
 
 def display_controls():
-    print("// AutoClicker by iSayChris")
+    print("// AutoClicker by NeedtobeatVictor")
     print("// - Settings: ")
     print("\t delay = " + str(delay) + ' sec' + '\n')
     print("// - Controls:")
@@ -208,22 +209,30 @@ def display_controls():
     print('Press F1 to start ...')
 
 # Number of pixels under ball center to click
-buffer = 20
+#ybuffer1 = 10
+#ybuffer2 = 20
+ybuffer3 = 30
+
+xbuffer1 = 20
 suffix = '.png'
 
 fname = 'screenshot'
-delay = 0.05 # in seconds
+delay = 0.00 # in seconds
 
 def main():
     desiredscore = 10000
     currentscore = 0
     lis = Listener(on_press=on_press)
     lis.start()
-    eloc = {'left': 680, 'top': 286, 'width': 987 - 680, 'height': 529 - 286} #680,286, 998, 529
+
+    ##### CHANGE THIS for each resolution of computer #######
+    eloc = {'left': 677, 'top': 289, 'width': 987 - 677, 'height': 525 - 289}
+
     display_controls()
     i = 0
     target = read_target(ballname)
     while True:
+        #start = time.time()
         #if not pause:
             #takesc()
             #print("=========")
@@ -232,13 +241,31 @@ def main():
             #centreX, centreY = blackball(ballname, folder + fname + str(i) + suffix, i)
             #centreX, centreY = detect(ballname, folder1+fname + str(i) + suffix)
         centreX, centreY = fullproc(target, eloc['left'], eloc['top'], eloc['width'], eloc['height'])
-        centreX = centreX + eloc['left']
-        centreY = centreY + eloc['top'] + buffer
+        centreX1 = centreX + eloc['left']
+        #centreX2 = centreX + eloc['left'] + xbuffer1
+        #centreX3 = centreX + eloc['left'] - xbuffer1
+        #centreY1 = centreY + eloc['top'] + ybuffer1
+        #centreY2 = centreY + eloc['top'] + ybuffer2
+        centreY3 = centreY + eloc['top'] + ybuffer3
         #print(centreX, centreY)
-        if centreY + buffer > eloc['height'] + eloc['top']:
-            centreY = eloc['height'] + eloc['top'] - 1
-        if centreY > (eloc['height'])/2:
-            pyautogui.click(x=centreX, y=centreY)
+        '''if centreY1 > eloc['height'] + eloc['top']:
+            centreY1 = eloc['height'] + eloc['top'] - 1
+        if centreY2 > eloc['height'] + eloc['top']:
+            centreY2 = eloc['height'] + eloc['top'] - 1'''
+        if centreY3 > eloc['height'] + eloc['top']:
+            centreY3 = eloc['height'] + eloc['top'] - 1
+        #if centreY > (eloc['height'])/2:
+        pyautogui.click(x=centreX1, y=centreY3)
+            #pyautogui.click(x=centreX2, y=centreY3)
+            #pyautogui.click(x=centreX3, y=centreY3)
+            #pyautogui.click(x=centreX3, y=centreY1)
+            #pyautogui.click(x=centreX1, y=centreY2)
+            #pyautogui.click(x=centreX2, y=centreY2)
+            #pyautogui.click(x=centreX3, y=centreY2)
+            #pyautogui.click(x=centreX1, y=centreY1)
+            #pyautogui.click(x=centreX2, y=centreY1)
+            
+            
             #pyautogui.click(x=centreX+20, y=centreY+buffer)
             #pyautogui.click(x=centreX-20, y=centreY+buffer)
             #currentscore += 1
@@ -246,13 +273,15 @@ def main():
             #i +=1 
             #print(currentscore)
         #i = 0
-            #pyautogui.click(x=672, y=370)
+        #pyautogui.click(x=672, y=370)
 
             #width, height = pyautogui.size()
             #for i in range(int(1366/2 -200), int(1366/2 +200)):
             #pyautogui.click(x=1366/2, y=730)
             #print(width, height)
         #    pyautogui.PAUSE = delay
+        #end = time.time()
+        #print(end - start)
     lis.stop()
 
 
