@@ -3,7 +3,7 @@ from pynput.keyboard import *
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
-import tensorflow
+#import tensorflow
 import killswitch
 import time
 import mss
@@ -206,8 +206,9 @@ def display_controls():
     print("\t F1 = Resume")
     print("\t F2 = Pause")
     print("\t F3 = Exit")
+    print("\t ESC = For real Exit")
     print("-----------------------------------------------------")
-    print('Press F1 to start ...')
+    print('Don\'t need to Press F1 to start ...')
 
 # Number of pixels under ball center to click
 #ybuffer1 = 10
